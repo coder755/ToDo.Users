@@ -75,7 +75,7 @@ public class UserController
         
         if (user == null || user.ExternalId == Guid.Empty)
         {
-            return new NotFoundResult();
+            return new NoContentResult();
         }
         
         return  user.ToModelObject();

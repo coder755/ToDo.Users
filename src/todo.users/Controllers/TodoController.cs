@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using todo.users.model;
 using todo.users.model.Requests;
 using todo.users.Services.Auth;
 using todo.users.Services.Todo;
@@ -21,7 +22,6 @@ public class TodoController
     private readonly IAuthHeaderProvider _authHeaderProvider;
     private readonly IUserService _userService;
 
-
     public TodoController(
         ILogger<TodoController> logger, 
         ITodoService todoService, 
@@ -34,6 +34,16 @@ public class TodoController
         _userService = userService;
     }
 
+    [Authorize]
+    [HttpGet]
+    public ActionResult<List<Todo>> GetAll()
+    {
+        var ownerId = _authHeaderProvider.GetUserId();
+        var todos = _todoService.FindAllTodos(ownerId);
+        
+        return todos.Select(todo => todo.ToModelObject()).ToList();
+    }
+    
     [HttpPost]
     public async Task<ActionResult> PostTodo([FromBody] PostTodRequest req)
     {
@@ -50,7 +60,6 @@ public class TodoController
             ExternalId = Guid.NewGuid(),
             UserId = userId,
             Name = req.Name, 
-            Description = req.Description,
             IsComplete = false,
             CompleteDate = DateTime.Now,
             CreatedDate = DateTime.Now
@@ -58,6 +67,35 @@ public class TodoController
         try
         {
             await _todoService.CreateTodo(todo);
+            return new OkResult();
+        }
+        catch (SystemException e)
+        {
+            _logger.LogError(e.Message);
+            return new BadRequestResult();
+        }
+    }
+    
+    [HttpPost("{todoId}/completed")]
+    public async Task<ActionResult> PostTodoCompleted([FromRoute] string todoId)
+    {
+        var userId = _authHeaderProvider.GetUserId();
+        var user = await _userService.FindUser(userId);
+        
+        if (user == null || user.ExternalId == Guid.Empty)
+        {
+            return new BadRequestResult();
+        }
+        
+        var isValidGuid = Guid.TryParse(todoId, out var todoExternalId);
+        if (!isValidGuid)
+        {
+            return new BadRequestResult();
+        }
+ 
+        try
+        {
+            await _todoService.MarkTodoCompleted(todoExternalId, userId);
             return new OkResult();
         }
         catch (SystemException e)

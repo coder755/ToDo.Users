@@ -7,7 +7,4 @@ public class PostTodRequest
 {
     [DataMember(IsRequired = true)]
     public string Name { get; set; }
-    
-    [DataMember(IsRequired = true)]
-    public string Description { get; set; }
 }

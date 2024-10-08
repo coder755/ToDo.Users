@@ -16,4 +16,15 @@ public static class Extensions
             Username = dbUser.UserName
         };
     }
+    
+    public static Todo ToModelObject(this db.Todo dbTodo)
+    {
+        return new Todo
+        {
+            ExternalId = dbTodo.ExternalId,
+            Name = dbTodo.Name,
+            IsComplete = dbTodo.IsComplete,
+            CompleteDate = dbTodo.CompleteDate
+        };
+    }
 }

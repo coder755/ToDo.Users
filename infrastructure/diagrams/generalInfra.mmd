@@ -1,6 +1,7 @@
 ```mermaid
 
 architecture-beta
+    service internet(internet)[Internet]
     group awsCloud(cloud)[AWS Cloud]
     service cf(internet)[CloudFront] in awsCloud
     service s3(database)[S3 Bucket] in awsCloud
@@ -16,6 +17,7 @@ architecture-beta
     service db(database)[Database] in private
     service fg(disk)[Fargete EC2 Instance] in private
 
+    internet:R --> L:cf
     cf:B --> L:lb
     cf:R --> L:s3
     lb:R --> L:fg

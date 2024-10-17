@@ -187,10 +187,6 @@ public class UserServiceStack : Stack
             SecurityGroupName = serviceNamespace + ".fargateService.securityGroup",
             Vpc = props.Vpc
         });
-        fargateSecGroup.AddIngressRule(Peer.AnyIpv4(), new Port(new PortProps
-        {
-            FromPort = 80, ToPort = 80, Protocol = Protocol.TCP, StringRepresentation = "80:80:TCP", 
-        }));
         fargateSecGroup.AddIngressRule(httpsSecurityGroup, Port.AllTcp(), "Allow traffic from ALB to Fargate on all ports");
         
         var unused2 = new StringParameter(this, serviceNamespace + ".stringParameter.fargate.sg", new StringParameterProps

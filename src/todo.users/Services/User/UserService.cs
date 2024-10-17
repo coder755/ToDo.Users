@@ -6,8 +6,7 @@ namespace todo.users.Services.User;
 public class UserService : IUserService
 {
     private readonly UsersContext _context;
-
-
+    
     public UserService( UsersContext context)
     {
         _context = context;

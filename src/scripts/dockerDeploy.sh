@@ -12,7 +12,7 @@ AWS_REGION="us-east-1"
 SERVICE_DOT_NAME="todo.users"
 
 ECR_LOCATION="442042533215.dkr.ecr.$AWS_REGION.amazonaws.com"
-ECR_REPOSITORY="${ECR_LOCATION}/todo.instance"
+ECR_REPOSITORY="${ECR_LOCATION}/todo.us"
 DOCKER_TAG="${ECR_REPOSITORY}:${SERVICE_DOT_NAME}"
 
 OUTPUT=`aws secretsmanager get-secret-value --secret-id todoDatabaseSecret --query SecretString --output text`
@@ -33,4 +33,4 @@ docker tag $SERVICE_DOT_NAME $DOCKER_TAG
 docker push $DOCKER_TAG
 
 # refresh fargate service
-aws ecs update-service --cluster "todo-instance-cluster" --service "todo-instance-fargate-service" --force-new-deployment --no-cli-pager
+aws ecs update-service --cluster "todo-us-cluster" --service "todo-us-fargate-service" --force-new-deployment --no-cli-pager

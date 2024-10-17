@@ -10,17 +10,57 @@ using Constructs;
 using HealthCheck = Amazon.CDK.AWS.ElasticLoadBalancingV2.HealthCheck;
 using Protocol = Amazon.CDK.AWS.EC2.Protocol;
 
-namespace Infrastructure.Instance;
+namespace Infrastructure.UserService;
 
-public class InstanceStack : Stack
+public class UserServiceStack : Stack
 {
+    public ApplicationLoadBalancer LoadBalancer { get; set; }
+    
     private const string BaseNamespace = "todo";
-    private const string ServiceName = "instance";
-    internal InstanceStack(Construct scope, string stackId, InstanceStackProps props) : base(scope, stackId, props)
+    private const string ServiceName = "us";
+    private const string CloudFrontPrefixListId = "pl-3b927c52";
+    internal UserServiceStack(Construct scope, string stackId, UserServiceStackProps props) : base(scope, stackId, props)
     {
         const string serviceNamespace = BaseNamespace + "." + ServiceName;
         const string dashedServiceNamespace = BaseNamespace + "-" + ServiceName;
 
+        var cloudFrontPrefixList = Peer.PrefixList(CloudFrontPrefixListId);
+        
+        var httpSecurityGroup = new SecurityGroup(this, serviceNamespace + ".alb.sg.http", new SecurityGroupProps
+        {
+            AllowAllOutbound = true,
+            SecurityGroupName = serviceNamespace + ".alb.securityGroup.http",
+            Vpc = props.Vpc,
+        });
+        httpSecurityGroup.AddIngressRule(cloudFrontPrefixList, new Port(new PortProps
+        {
+            FromPort = 80, ToPort = 80, Protocol = Protocol.TCP, StringRepresentation = "80:80:TCP"
+        }));
+        var httpsSecurityGroup = new SecurityGroup(this, serviceNamespace + ".alb.sg.https", new SecurityGroupProps
+        {
+            AllowAllOutbound = true,
+            SecurityGroupName = serviceNamespace + ".alb.securityGroup.https",
+            Vpc = props.Vpc
+        });
+        httpsSecurityGroup.AddIngressRule(cloudFrontPrefixList, new Port(new PortProps
+        {
+            FromPort = 443, ToPort = 443, Protocol = Protocol.TCP, StringRepresentation = "443:443:TCP"
+        }));
+        
+        LoadBalancer = new ApplicationLoadBalancer(this, serviceNamespace + ".alb", new ApplicationLoadBalancerProps
+        {
+            Vpc = props.Vpc,
+            InternetFacing = true,
+            VpcSubnets = new SubnetSelection {
+                SubnetType = SubnetType.PUBLIC,
+                AvailabilityZones = props.AvailabilityZones
+            },
+            IpAddressType = IpAddressType.IPV4,
+            LoadBalancerName = dashedServiceNamespace + "-alb",
+            SecurityGroup = httpSecurityGroup
+        });
+        LoadBalancer.AddSecurityGroup(httpsSecurityGroup);
+        
         // create ECS cluster
         var cluster = new Cluster(this, serviceNamespace + ".cluster", new ClusterProps
         {
@@ -42,10 +82,22 @@ public class InstanceStack : Stack
             TargetGroupName = dashedServiceNamespace
         });
         
-        var unused = new StringParameter(this, serviceNamespace + "stringParameter.targetGroup", new StringParameterProps
+        LoadBalancer.AddListener(serviceNamespace + ".alb.http.listener", new ApplicationListenerProps
         {
-            ParameterName = serviceNamespace + ".targetGroup",
-            StringValue = targetGroup.TargetGroupArn
+            Protocol = ApplicationProtocol.HTTP,
+            Port = 80,
+            DefaultTargetGroups = new [] { targetGroup },
+        });
+        
+        var certificateArn = StringParameter.ValueFromLookup(this, "todo.routing.stringParameter.certificate.arn");
+        var certificate = ListenerCertificate.FromArn(certificateArn);
+        LoadBalancer.AddListener(serviceNamespace + ".alb.https.listener", new ApplicationListenerProps
+        {
+            Protocol = ApplicationProtocol.HTTPS,
+            Port = 443,
+            SslPolicy = SslPolicy.RECOMMENDED,
+            Certificates = new IListenerCertificate[]{certificate},
+            DefaultAction = ListenerAction.Forward(new []{targetGroup})
         });
         
         var ecsRole = new Role(this, serviceNamespace + ".ecsRole", new RoleProps
@@ -90,15 +142,15 @@ public class InstanceStack : Stack
         // create ECR
         var ecrRepository = new Repository(this, serviceNamespace + ".ecr", new RepositoryProps
         {
-            RepositoryName = serviceNamespace.ToLower(), RemovalPolicy = RemovalPolicy.DESTROY
+            RepositoryName = serviceNamespace, RemovalPolicy = RemovalPolicy.DESTROY
         } );
         
         // create the task definition
         var taskDefinition = new TaskDefinition(this, serviceNamespace + ".taskDefinition", new TaskDefinitionProps {
             Compatibility = Compatibility.FARGATE,
             Family = dashedServiceNamespace,
-            Cpu = "1024",
-            MemoryMiB = "3072",
+            Cpu = "256",
+            MemoryMiB = "512",
             RuntimePlatform = new RuntimePlatform
             {
                 OperatingSystemFamily = OperatingSystemFamily.LINUX,
@@ -109,7 +161,7 @@ public class InstanceStack : Stack
         });
         taskDefinition.AddContainer(serviceNamespace + ".container", new ContainerDefinitionOptions
         {
-            ContainerName = dashedServiceNamespace + "-container",
+            ContainerName = dashedServiceNamespace.ToLower() + "-container",
             Image = ContainerImage.FromEcrRepository(ecrRepository, "todo.users"),
             PortMappings = new IPortMapping[] { new PortMapping
             {
@@ -129,8 +181,6 @@ public class InstanceStack : Stack
         });
         
         // set up the Fargate Service
-        var loadBalancerHttpsSgId = StringParameter.ValueFromLookup(this, "todo.vpc.alb.https.sg");
-        var loadBalancerHttpsSg = SecurityGroup.FromSecurityGroupId(this, serviceNamespace + ".lb.https.sg", loadBalancerHttpsSgId );
         var fargateSecGroup = new SecurityGroup(this, serviceNamespace + ".fargateService.securityGroup", new SecurityGroupProps
         {
             AllowAllOutbound = true,
@@ -141,7 +191,7 @@ public class InstanceStack : Stack
         {
             FromPort = 80, ToPort = 80, Protocol = Protocol.TCP, StringRepresentation = "80:80:TCP", 
         }));
-        fargateSecGroup.AddIngressRule(loadBalancerHttpsSg, Port.AllTcp(), "Allow traffic from ALB to Fargate on all ports");
+        fargateSecGroup.AddIngressRule(httpsSecurityGroup, Port.AllTcp(), "Allow traffic from ALB to Fargate on all ports");
         
         var unused2 = new StringParameter(this, serviceNamespace + ".stringParameter.fargate.sg", new StringParameterProps
         {

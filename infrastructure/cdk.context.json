@@ -79,8 +79,7 @@
     "ipAddressType": "ipv4"
   },
   "ssm:account=442042533215:parameterName=todo.vpc.alb.sg:region=us-east-1": "sg-0b54f195fbdc6880b",
-  "ssm:account=442042533215:parameterName=todo.instance.targetGroup:region=us-east-1": "arn:aws:elasticloadbalancing:us-east-1:442042533215:targetgroup/todo-instance/70acd2314f0c656f",
   "ssm:account=442042533215:parameterName=todo.routing.stringParameter.certificate.arn:region=us-east-1": "arn:aws:acm:us-east-1:442042533215:certificate/f190d9dc-23e4-43c8-8f1c-a49146895c30",
   "ssm:account=442042533215:parameterName=todo.vpc.alb.https.sg:region=us-east-1": "sg-0e81d33f776825d79",
-  "ssm:account=442042533215:parameterName=todo.instance.fargate.sg:region=us-east-1": "sg-081686501c1fbf0ee"
+  "ssm:account=442042533215:parameterName=todo.us.fargate.sg:region=us-east-1": "sg-0bee32ed4f23f8e8a"
 }

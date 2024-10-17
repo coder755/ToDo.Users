@@ -1,8 +1,8 @@
 ﻿using Amazon.CDK;
 using Infrastructure.Database;
 using Infrastructure.FrontEnd;
-using Infrastructure.Instance;
 using Infrastructure.Routing;
+using Infrastructure.UserService;
 using Infrastructure.Vpc;
 
 namespace Infrastructure;
@@ -22,16 +22,17 @@ internal static class Program
         var props = new StackProps { Env = env };
         var vpcStack = new VpcStack(app, "TodoVpcStack", props);
         var frontEndStack = new FrontEndStack(app, "TodoFrontEndStack", props);
-        var routingStack = new RoutingStack(app, "TodoRoutingStack", new RoutingStackProps
-        {
-            Env = env,
-            LoadBalancer = vpcStack.LoadBalancer,
-            Bucket = frontEndStack.Bucket,
-        });
-        var instanceStack = new InstanceStack(app, "TodoInstanceStack" , new InstanceStackProps
+        var userServiceStack = new UserServiceStack(app, "TodoUsStack" , new UserServiceStackProps
         {
             Env = env,
             Vpc = vpcStack.Vpc,
+            AvailabilityZones = vpcStack.AvailabilityZones
+        });
+        var routingStack = new RoutingStack(app, "TodoRoutingStack", new RoutingStackProps
+        {
+            Env = env,
+            LoadBalancer = userServiceStack.LoadBalancer,
+            Bucket = frontEndStack.Bucket,
         });
         var databaseStack = new DatabaseStack(app, "TodoDbStack", new DatabaseStackProps
         {          

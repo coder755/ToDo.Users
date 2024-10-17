@@ -63,7 +63,7 @@ public class DatabaseStack : Stack
             SecurityGroupName = dashedServiceNamespace + "-db-securityGroup",
             AllowAllOutbound = true
         });
-        var fargateSgId = StringParameter.ValueFromLookup(this, "todo.instance.fargate.sg");
+        var fargateSgId = StringParameter.ValueFromLookup(this, "todo.us.fargate.sg");
         var fargateSecGroup = SecurityGroup.FromSecurityGroupId(this, serviceNamespace + ".fargate.sg", fargateSgId);
         dbSecurityGroup.AddIngressRule(fargateSecGroup, Port.Tcp(3306), "Allow Fargate to access db");
         dbSecurityGroup.AddIngressRule(bastionSecurityGroup, Port.AllTcp(), "Allow bastion to access db");

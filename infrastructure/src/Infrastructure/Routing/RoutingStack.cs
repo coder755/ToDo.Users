@@ -18,7 +18,6 @@ public class RoutingStack : Stack
 
     internal RoutingStack(Construct scope, string stackId, RoutingStackProps props) : base(scope, stackId, props)
     {
-        
         const string serviceNamespace = BaseNamespace + "." + ServiceName;
 
         var todoHostedZone = new HostedZone(this, serviceNamespace + ".Hostedzone", new HostedZoneProps

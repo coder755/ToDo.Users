@@ -5,12 +5,12 @@ architecture-beta
     service cf(internet)[CloudFront] in awsCloud
     service s3(database)[S3 Bucket] in awsCloud
 
-    group vpc(cloud)[vpc] in awsCloud
+    group vpc(cloud)[VPC] in awsCloud
 
-    group public(cloud)[public] in vpc
+    group public(cloud)[Public Subnet] in vpc
     service lb(server)[LoadBalancer] in public
 
-    group private(cloud)[private] in vpc
+    group private(cloud)[Private Subnet] in vpc
     service db(database)[Database] in private
     service fg(disk)[Fargete EC2 Instance] in private
 

@@ -1,0 +1,22 @@
+```mermaid
+
+architecture-beta
+    group awsCloud(cloud)[AWS Cloud]
+    service cf(internet)[CloudFront] in awsCloud
+    service s3(database)[S3 Bucket] in awsCloud
+
+    group vpc(cloud)[vpc] in awsCloud
+
+    group public(cloud)[public] in vpc
+    service lb(server)[LoadBalancer] in public
+
+    group private(cloud)[private] in vpc
+    service db(database)[Database] in private
+    service fg(disk)[Fargete EC2 Instance] in private
+
+    cf:B -- T:lb
+    cf:R -- L:s3
+    fg:L -- R:lb
+    db:L -- R:fg
+
+```

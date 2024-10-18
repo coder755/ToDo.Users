@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "todo.users", "todo.users\todo.users.csproj", "{F18693DB-3576-4404-917C-2AA182CA4BC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "todo.users.db", "todo.users.db\todo.users.db.csproj", "{55609C0C-FD9A-43FC-9F65-78B92B55564B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "todo.users.model", "todo.users.model\todo.users.model.csproj", "{CF8152DD-36B0-42C4-BEE1-E6C45E8844EA}"
 EndProject
 Global
@@ -16,10 +14,6 @@ Global
 		{F18693DB-3576-4404-917C-2AA182CA4BC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F18693DB-3576-4404-917C-2AA182CA4BC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F18693DB-3576-4404-917C-2AA182CA4BC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55609C0C-FD9A-43FC-9F65-78B92B55564B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55609C0C-FD9A-43FC-9F65-78B92B55564B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55609C0C-FD9A-43FC-9F65-78B92B55564B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55609C0C-FD9A-43FC-9F65-78B92B55564B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF8152DD-36B0-42C4-BEE1-E6C45E8844EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CF8152DD-36B0-42C4-BEE1-E6C45E8844EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF8152DD-36B0-42C4-BEE1-E6C45E8844EA}.Release|Any CPU.ActiveCfg = Release|Any CPU

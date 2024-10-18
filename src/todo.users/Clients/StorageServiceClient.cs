@@ -28,7 +28,7 @@ public class StorageServiceClient : IStorageServiceClient
         try
         {
             var response = await _client.PostAsync(uri, content);
-            if (response.StatusCode.Equals(HttpStatusCode.Accepted))
+            if (response.StatusCode.Equals(HttpStatusCode.Accepted) || response.StatusCode.Equals(HttpStatusCode.Created))
             {
                 return true;
             }

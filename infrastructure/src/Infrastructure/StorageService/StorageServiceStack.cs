@@ -1,5 +1,5 @@
-﻿using Amazon.CDK;
-using Amazon.CDK.AWS.CodeDeploy;
+﻿using System.Collections.Generic;
+using Amazon.CDK;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.ECS;
@@ -95,7 +95,11 @@ public class StorageServiceStack : Stack
         
         var taskRole = new Role(this, serviceNamespace + ".taskRole", new RoleProps
         {
-            AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com")
+            AssumedBy = new ServicePrincipal("ecs-tasks.amazonaws.com"),
+            ManagedPolicies = new []
+            {
+                ManagedPolicy.FromAwsManagedPolicyName("AmazonSQSFullAccess")
+            }
         });
         
         taskRole.AddToPolicy(new PolicyStatement(new PolicyStatementProps
@@ -133,6 +137,7 @@ public class StorageServiceStack : Stack
             ExecutionRole =  ecsRole,
             TaskRole = taskRole
         });
+        var queueUrl = StringParameter.ValueFromLookup(this, "todo.pubsub.queue.url");
         taskDefinition.AddContainer(serviceNamespace + ".container", new ContainerDefinitionOptions
         {
             ContainerName = dashedServiceNamespace.ToLower() + "-container",
@@ -144,6 +149,10 @@ public class StorageServiceStack : Stack
                 Protocol = Amazon.CDK.AWS.ECS.Protocol.TCP,
                 AppProtocol = AppProtocol.Http
             } },
+            Environment = new Dictionary<string, string>
+            {
+                {"QUEUE_URL", queueUrl}
+            },
             Logging = new AwsLogDriver(new AwsLogDriverProps
             {
                 StreamPrefix = dashedServiceNamespace + "-container",

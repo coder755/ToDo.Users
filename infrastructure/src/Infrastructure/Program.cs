@@ -1,6 +1,7 @@
 ﻿using Amazon.CDK;
 using Infrastructure.Database;
 using Infrastructure.FrontEnd;
+using Infrastructure.PubSub;
 using Infrastructure.Routing;
 using Infrastructure.StorageService;
 using Infrastructure.UserService;
@@ -41,6 +42,11 @@ internal static class Program
             LoadBalancer = userServiceStack.LoadBalancer,
             StorageLoadBalancer = storageServiceStack.LoadBalancer,
             Bucket = frontEndStack.Bucket,
+        });
+        var pubSubStack = new PubSubStack(app, "TodoPubSubStack", new PubSubStackProps
+        {
+            Env = env,
+            Vpc = vpcStack.Vpc
         });
         var databaseStack = new DatabaseStack(app, "TodoDbStack", new DatabaseStackProps
         {          

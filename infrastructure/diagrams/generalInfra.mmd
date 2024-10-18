@@ -10,18 +10,22 @@ architecture-beta
     group vpc(cloud)[VPC] in awsCloud
 
     group public(cloud)[Public Subnet] in vpc
-    service lb(server)[LoadBalancer] in public
+    service userLb(server)[User LoadBalancer] in public
     service bastion(server)[CJ Bastion] in public
 
     group private(cloud)[Private Subnet] in vpc
+    service userIn(disk)[User Instance] in private
+    service storageLb(server)[Storage LoadBalancer] in private
+    service storageIn(disk)[Storage Instance] in private
     service db(database)[Database] in private
-    service fg(disk)[Fargete EC2 Instance] in private
 
     internet:R --> L:cf
-    cf:B --> L:lb
+    cf:B --> L:userLb
     cf:R --> L:s3
-    lb:R --> L:fg
-    fg:B --> T:db
+    userLb:R --> L:userIn
+    userIn:R --> L:storageLb
+    storageLb:B --> T:storageIn
+    storageIn:L --> R:db
     cjpc:R --> L:bastion
     bastion:R --> L:db
 

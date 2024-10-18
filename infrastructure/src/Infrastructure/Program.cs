@@ -2,6 +2,7 @@
 using Infrastructure.Database;
 using Infrastructure.FrontEnd;
 using Infrastructure.Routing;
+using Infrastructure.StorageService;
 using Infrastructure.UserService;
 using Infrastructure.Vpc;
 
@@ -11,7 +12,7 @@ internal static class Program
     private const string Account = "442042533215";
     private const string Region = "us-east-1";
 
-    public static void Main(string[] args)
+    public static void Main()
     {
         var app = new App();
         var env = new Environment
@@ -28,10 +29,17 @@ internal static class Program
             Vpc = vpcStack.Vpc,
             AvailabilityZones = vpcStack.AvailabilityZones
         });
+        var storageServiceStack = new StorageServiceStack(app, "TodoStoreStack", new StorageServiceStackProps
+        {
+            Env = env,
+            Vpc = vpcStack.Vpc,
+            LoadBalancer = userServiceStack.LoadBalancer
+        });
         var routingStack = new RoutingStack(app, "TodoRoutingStack", new RoutingStackProps
         {
             Env = env,
             LoadBalancer = userServiceStack.LoadBalancer,
+            StorageLoadBalancer = storageServiceStack.LoadBalancer,
             Bucket = frontEndStack.Bucket,
         });
         var databaseStack = new DatabaseStack(app, "TodoDbStack", new DatabaseStackProps

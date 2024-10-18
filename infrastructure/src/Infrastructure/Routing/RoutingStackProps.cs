@@ -8,5 +8,6 @@ namespace Infrastructure.Routing;
 public class RoutingStackProps : StackProps
 {
     public ApplicationLoadBalancer LoadBalancer { get; set; }
+    public ApplicationLoadBalancer StorageLoadBalancer { get; set; }
     public Bucket Bucket { get; set; }
 }

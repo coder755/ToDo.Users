@@ -10,10 +10,15 @@ public class User
 
     public User()
     {
-        ExternalId = new Guid();
+        ExternalId = Guid.Empty;
         Username = "";
         FirstName = "";
         FamilyName = "";
         Email = "";
+    }
+
+    public bool IsEmptyUser()
+    {
+        return ExternalId == Guid.Empty;
     }
 }

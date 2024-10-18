@@ -1,51 +1,46 @@
-using Microsoft.EntityFrameworkCore;
-using todo.users.db;
+using Microsoft.Extensions.Logging;
+using todo.users.Clients;
 
 namespace todo.users.Services.User;
 
 public class UserService : IUserService
 {
-    private readonly UsersContext _context;
+    private readonly ILogger<UserService> _logger;
+    private readonly IStorageServiceClient _storageServiceClient;
     
-    public UserService( UsersContext context)
+    public UserService(ILogger<UserService> logger, IStorageServiceClient storageServiceClient)
     {
-        _context = context;
-    }
-    
-    public async Task<db.User> FindUser(Guid externalId)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(user =>
-            user.ExternalId == externalId
-        );
-        return user;
+        _logger = logger;
+        _storageServiceClient = storageServiceClient;
     }
 
-    public async Task<db.User> FindThirdPartyUser(Guid thirdPartyId)
+    public async Task<bool> RequestCreateUser(model.User user)
     {
-        var user = await _context.Users.FirstAsync(user =>
-            user.ThirdPartyId == thirdPartyId
-        );
-        return user;
-    }
-    
-    public async Task<db.User> CreateUser(db.User user)
-    {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-    
-        return user;
-    }
-
-    public async Task<bool> DeleteUser(Guid externalId)
-    {
-        var user = await FindUser(externalId);
-        if (user == null || user.ExternalId == Guid.Empty)
+        try
         {
-            throw new Exception("User does not exist");
+            var success = await _storageServiceClient.RequestCreateUser(user);
+            return success;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
         }
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
+        return false;
+    }
+    
+    public async Task<model.User> FindUser(Guid externalId)
+    {
+        try
+        {
+            var user = await _storageServiceClient.GetUser(externalId);
+            return user;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
+
+        return new model.User();
     }
 }

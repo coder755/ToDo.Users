@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using todo.users.model;
 using todo.users.model.Requests;
-using todo.users.model.Responses;
 using todo.users.Services.Auth;
 using todo.users.Services.User;
 
@@ -33,7 +32,7 @@ public class UserController
     }
 
     [HttpPost]
-    public async Task<ActionResult<PostUserResponse>> PostUser([FromBody] PostUserRequest req)
+    public async Task<ActionResult> RequestPostUser([FromBody] PostUserRequest req)
     {
         var isValidGuid = Guid.TryParse(req.Id, out var userGuid);
         if (!isValidGuid)
@@ -42,29 +41,28 @@ public class UserController
         }
         try
         {
-            var user = new db.User()
+            var user = new User
             {
                 ExternalId = userGuid,
-                ThirdPartyId = userGuid,
-                UserName = req.Username, 
+                Username = req.Username,
                 FirstName = req.FirstName,
                 FamilyName = req.FamilyName,
                 Email = req.Email,
-                CreatedDate = DateTime.Now
             };
-            await _userService.CreateUser(user);
-            var storedUser = await _userService.FindUser(user.ExternalId);
-            
-            return new PostUserResponse
+            var requestSubmitted = await _userService.RequestCreateUser(user);
+
+            if (requestSubmitted)
             {
-                User = storedUser.ToModelObject()
-            };
+                return new AcceptedResult();
+            }
         }
         catch (SystemException e)
         {
             _logger.LogError(e.Message);
             return new BadRequestResult();
         }
+
+        return new StatusCodeResult(500);
     }
     
     [HttpGet]
@@ -73,38 +71,11 @@ public class UserController
         var userId = _authHeaderProvider.GetUserId();
         var user = await _userService.FindUser(userId);
         
-        if (user == null || user.ExternalId == Guid.Empty)
+        if (user.IsEmptyUser())
         {
             return new NoContentResult();
         }
         
-        return  user.ToModelObject();
-    }
-
-    /// <summary>
-    /// Will need to go through and manually delete the user from AWS Cognito console
-    /// </summary>
-    /// <param name="userToDeleteId"></param>
-    /// <returns></returns>
-    [Authorize(Roles = "Admin")]
-    [HttpDelete("{userToDeleteId}")]
-    public async Task<ActionResult> HardDelete([FromRoute] string userToDeleteId)
-    {
-        var isValidGuid = Guid.TryParse(userToDeleteId, out var userGuid);
-        if (!isValidGuid)
-        {
-            return new BadRequestResult();
-        }
-
-        try
-        {
-            var deleteUserSuccess = await _userService.DeleteUser(userGuid);
-            return deleteUserSuccess ? new OkResult() : new StatusCodeResult(500);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            throw;
-        }
+        return  user;
     }
 }

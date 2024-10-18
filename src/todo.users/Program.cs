@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using todo.users.Clients;
 using todo.users.db;
 using todo.users.Services.Auth;
 using todo.users.Services.Todo;
@@ -67,6 +68,12 @@ builder.Services.AddSingleton<IAuthHeaderProvider, AuthHeaderProvider>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITodoService, TodoService>();
+
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IStorageServiceClient, StorageServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Todo.Storage:ServiceEndpointBase"] ?? string.Empty);
+});
 
 builder.Services.AddSwaggerGen(options =>
 {

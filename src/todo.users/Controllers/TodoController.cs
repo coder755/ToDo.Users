@@ -36,44 +36,46 @@ public class TodoController
 
     [Authorize]
     [HttpGet]
-    public ActionResult<List<Todo>> GetAll()
+    public async Task<ActionResult<List<Todo>>> GetAll()
     {
         var ownerId = _authHeaderProvider.GetUserId();
-        var todos = _todoService.FindAllTodos(ownerId);
+        var todos = await _todoService.GetAllTodos(ownerId);
         
-        return todos.Select(todo => todo.ToModelObject()).ToList();
+        return todos.ToList();
     }
     
     [HttpPost]
-    public async Task<ActionResult> PostTodo([FromBody] PostTodRequest req)
+    public async Task<ActionResult> RequestPostTodo([FromBody] PostTodRequest req)
     {
         var userId = _authHeaderProvider.GetUserId();
         var user = await _userService.FindUser(userId);
         
-        if (user == null || user.ExternalId == Guid.Empty)
+        if (user.IsEmptyUser())
         {
             return new BadRequestResult();
         }
         
-        var todo = new db.Todo()
+        var todo = new Todo()
         {
             ExternalId = Guid.NewGuid(),
-            UserId = userId,
             Name = req.Name, 
             IsComplete = false,
             CompleteDate = DateTime.Now,
-            CreatedDate = DateTime.Now
         };
         try
         {
-            await _todoService.CreateTodo(todo);
-            return new OkResult();
+            var requestSubmitted = await _todoService.RequestCreateTodo(userId, todo);
+            if (requestSubmitted)
+            {
+                return new AcceptedResult();
+            }
         }
         catch (SystemException e)
         {
             _logger.LogError(e.Message);
             return new BadRequestResult();
         }
+        return new StatusCodeResult(500);
     }
     
     [HttpPost("{todoId}/completed")]
@@ -82,7 +84,7 @@ public class TodoController
         var userId = _authHeaderProvider.GetUserId();
         var user = await _userService.FindUser(userId);
         
-        if (user == null || user.ExternalId == Guid.Empty)
+        if (user.IsEmptyUser())
         {
             return new BadRequestResult();
         }
@@ -95,13 +97,17 @@ public class TodoController
  
         try
         {
-            await _todoService.MarkTodoCompleted(todoExternalId, userId);
-            return new OkResult();
+            var requestSubmitted = await _todoService.RequestMarkTodoCompleted(userId, todoExternalId);
+            if (requestSubmitted)
+            {
+                return new AcceptedResult();
+            }
         }
         catch (SystemException e)
         {
             _logger.LogError(e.Message);
             return new BadRequestResult();
         }
+        return new StatusCodeResult(500);
     }
 }

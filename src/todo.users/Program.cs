@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using todo.users.Clients;
-using todo.users.db;
 using todo.users.Services.Auth;
 using todo.users.Services.Todo;
 using todo.users.Services.User;
@@ -20,17 +19,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Ensure appsettings.json is loaded
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
-var connectionString = GetConnectionString(builder.Configuration);
-
-builder.Services.AddDbContext<UsersContext>(options =>
-{
-    var serverVersion = new MySqlServerVersion("8.0");
-    options.UseMySql(connectionString, serverVersion, optionsBuilder =>
-    {
-        optionsBuilder.EnableRetryOnFailure();
-    });
-});
-
 builder.Services.AddCognitoIdentity();
 builder.Services.AddAuthentication(options =>
 {
@@ -137,18 +125,4 @@ bool IsCorsOriginAllowed(string origin)
     }
     var isAllowed = origin.StartsWith("http://" + allowedHost) || origin.StartsWith("https://" + allowedHost);
     return isAllowed;
-}
-
-string GetConnectionString(IConfiguration configuration)
-{
-    const string dbSection = "Todo.Users:Db";
-    var dbConfig = configuration.GetSection(dbSection);
-    var server = dbConfig.GetValue<string>("Server");
-    var port = dbConfig.GetValue<string>("Port");
-    var database = dbConfig.GetValue<string>("Db");
-    var userId = Environment.GetEnvironmentVariable("TODO_USER_DB_ID");
-    var password = Environment.GetEnvironmentVariable("TODO_USER_DB_PW");
-    var connStr = $"server={server};port={port};user={userId};password={password};database={database};";
-
-    return connStr;
 }

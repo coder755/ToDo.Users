@@ -26,7 +26,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\todo.users.db\todo.users.db.csproj" />
       <ProjectReference Include="..\todo.users.model\todo.users.model.csproj" />
     </ItemGroup>
 

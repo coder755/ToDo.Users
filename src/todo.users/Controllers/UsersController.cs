@@ -76,6 +76,6 @@ public class UserController
             return new NoContentResult();
         }
         
-        return  user;
+        return user;
     }
 }

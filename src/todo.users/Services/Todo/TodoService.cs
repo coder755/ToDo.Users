@@ -1,53 +1,60 @@
-﻿using Microsoft.EntityFrameworkCore;
-using todo.users.db;
+﻿using Microsoft.Extensions.Logging;
+using todo.users.Clients;
 
 namespace todo.users.Services.Todo;
 
 public class TodoService : ITodoService
 {
-    private readonly UsersContext _context;
-    
-    public TodoService(UsersContext context)
+    private readonly ILogger<TodoService> _logger;
+    private readonly IStorageServiceClient _storageServiceClient;
+    public TodoService(ILogger<TodoService> logger, IStorageServiceClient storageServiceClient)
     {
-        _context = context;
+        _logger = logger;
+        _storageServiceClient = storageServiceClient;
     }
     
-    public async Task<db.Todo> CreateTodo(db.Todo todo)
+    public async Task<bool> RequestCreateTodo(Guid userId, model.Todo todo)
     {
-        _context.Todos.Add(todo);
-        await _context.SaveChangesAsync();
-    
-        return todo;
-    }
-    
-    private async Task<db.Todo> FindTodo(Guid externalId, Guid userId)
-    {
-        var todo = await _context.Todos.FirstOrDefaultAsync(td =>
-            td.ExternalId == externalId && td.UserId == userId
-        );
-        return todo;
-    }
-    
-    public IEnumerable<db.Todo> FindAllTodos(Guid userId)
-    {
-        var todos = _context.Todos.Where(todo => todo.UserId.Equals(userId)).ToList();
-        return todos;
-    }
-
-    public async Task<db.Todo> MarkTodoCompleted(Guid todoExternalId, Guid userId)
-    {
-        var foundTodo = await FindTodo(todoExternalId, userId);
-        if (foundTodo.ExternalId.Equals(Guid.Empty))
+        try
         {
-            throw new Exception();
+            var success = await _storageServiceClient.RequestCreateTodo(userId, todo);
+            return success;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
         }
 
-        foundTodo.IsComplete = true;
-        foundTodo.CompleteDate = DateTime.Now;
+        return false;
+    }
+    
+    public async Task<List<model.Todo>> GetAllTodos(Guid userId)
+    {
+        try
+        {
+            var todos = await _storageServiceClient.GetAllTodos(userId);
+            return todos;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
+    }
 
-        _context.Todos.Update(foundTodo);
-        await _context.SaveChangesAsync();
-        return foundTodo;
+    public async Task<bool> RequestMarkTodoCompleted(Guid userId, Guid todoExternalId)
+    {
+        try
+        {
+            var success = await _storageServiceClient.RequestMarkTodoCompleted(userId, todoExternalId);
+            return success;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
+
+        return false;
     }
 
 }

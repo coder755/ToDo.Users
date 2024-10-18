@@ -4,6 +4,10 @@ namespace todo.users.Clients;
 
 public interface IStorageServiceClient
 {
-    public Task<bool> RequestCreateUser(User user);
-    public Task<User> GetUser(Guid userId);
+    Task<bool> RequestCreateUser(User user);
+    Task<User> GetUser(Guid userId);
+    Task<List<Todo>> GetAllTodos(Guid userId);
+    Task<bool> RequestCreateTodo(Guid userId, Todo todo);
+    Task<bool> RequestMarkTodoCompleted(Guid userId, Guid todoId);
+   
 }

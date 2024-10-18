@@ -6,6 +6,7 @@ architecture-beta
     service cf(internet)[CloudFront] in awsCloud
     service s3(database)[S3 Bucket] in awsCloud
     service cjpc(internet)[CJ IP] in awsCloud
+    service queue(server)[Queue] in awsCloud
 
     group vpc(cloud)[VPC] in awsCloud
 
@@ -19,12 +20,13 @@ architecture-beta
     service storageIn(disk)[Storage Instance] in private
     service db(database)[Database] in private
 
-    internet:R --> L:cf
+    internet:B --> T:cf
     cf:B --> L:userLb
     cf:R --> L:s3
     userLb:R --> L:userIn
     userIn:R --> L:storageLb
     storageLb:B --> T:storageIn
+    queue:T <-- B:storageIn
     storageIn:L --> R:db
     cjpc:R --> L:bastion
     bastion:R --> L:db

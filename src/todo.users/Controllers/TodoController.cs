@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using todo.users.model;
 using todo.users.model.Requests;
-using todo.users.Services.Auth;
+using todo.users.Services.Auth.Header;
 using todo.users.Services.Todo;
 using todo.users.Services.User;
 

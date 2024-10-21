@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using todo.users.model;
 using todo.users.model.Requests;
-using todo.users.Services.Auth;
+using todo.users.Services.Auth.Header;
 using todo.users.Services.User;
 
 namespace todo.users.Controllers;
@@ -49,7 +49,7 @@ public class UserController
                 FamilyName = req.FamilyName,
                 Email = req.Email,
             };
-            var requestSubmitted = await _userService.RequestCreateUser(user);
+            var requestSubmitted = await _userService.RequestCreateUser(user, req.UseQueue);
 
             if (requestSubmitted)
             {

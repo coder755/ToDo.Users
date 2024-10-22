@@ -45,7 +45,7 @@ public class TodoController
     }
     
     [HttpPost]
-    public async Task<ActionResult> RequestPostTodo([FromBody] PostTodRequest req)
+    public async Task<ActionResult> RequestPostTodo([FromBody] PostTodoRequest req)
     {
         var userId = _authHeaderProvider.GetUserId();
         var user = await _userService.FindUser(userId);
@@ -64,7 +64,7 @@ public class TodoController
         };
         try
         {
-            var requestSubmitted = await _todoService.RequestCreateTodo(userId, todo);
+            var requestSubmitted = await _todoService.RequestCreateTodo(userId, todo, req.UseQueue);
             if (requestSubmitted)
             {
                 return new AcceptedResult();

@@ -7,5 +7,7 @@ public enum IncomingMessageType
     [EnumMember(Value = "AddTokenRequest")]
     AddTokenRequest,
     [EnumMember(Value = "UserCreated")]
-    UserCreated
+    UserCreated,
+    [EnumMember(Value = "TodoCreated")]
+    TodoCreated
 }

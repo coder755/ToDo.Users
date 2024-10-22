@@ -42,9 +42,42 @@ public class QueueService : IQueueService
             MessageAttributes = attributes
         };
 
+        return await TryToSendMessage(sendMessageRequest);
+    }
+
+    public async Task<bool> AddCreateTodoReqToQueue(Guid userId, model.Todo todo)
+    {
+        var createTodoQueueMessage = new CreateTodoQueueMessage
+        {
+            UserId = userId,
+            Todo = todo
+        };
+        var messageBody = JsonConvert.SerializeObject(createTodoQueueMessage);
+        var attributes = new Dictionary<string, MessageAttributeValue>
+        {
+            {
+                Typekey, new MessageAttributeValue
+                {
+                    DataType = StringDataType,
+                    StringValue = MessageTypes.CreateTodo.ToString()
+                }
+            }
+        };
+        var sendMessageRequest = new SendMessageRequest
+        {
+            QueueUrl = _sqsData.ToProcessQueueUrl,
+            MessageBody = messageBody,
+            MessageAttributes = attributes
+        };
+
+        return await TryToSendMessage(sendMessageRequest);
+    }
+    
+    private async Task<bool> TryToSendMessage(SendMessageRequest request)
+    {
         try
         {
-            var response = await _sqsClient.SendMessageAsync(sendMessageRequest);
+            var response = await _sqsClient.SendMessageAsync(request);
             if (response.HttpStatusCode.Equals(HttpStatusCode.OK))
             {
                 _logger.LogInformation($"Message sent with ID: {response.MessageId}");

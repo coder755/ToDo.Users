@@ -3,8 +3,10 @@
 namespace todo.users.model.Requests;
 
 [DataContract]
-public class PostTodRequest
+public class PostTodoRequest
 {
+    [DataMember]
+    public bool UseQueue;
     [DataMember(IsRequired = true)]
     public string Name { get; set; }
 }

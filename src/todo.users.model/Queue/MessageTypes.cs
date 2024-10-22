@@ -8,4 +8,6 @@ public enum MessageTypes
 {
     [EnumMember(Value = "CreateUser")]
     CreateUser,
+    [EnumMember(Value = "CreateTodo")]
+    CreateTodo,
 }

@@ -104,6 +104,13 @@ public class Connection : IConnection
                     HandleUserCreatedMessage(userCreatedMessage);
                     break;
                 }
+                case IncomingMessageType.TodoCreated:
+                {
+                    var todoCreatedMessage = JsonConvert.DeserializeObject<TodoCreatedMessage>(receivedMessage);
+                    if (todoCreatedMessage == null) throw new Exception();
+                    HandleTodoCreatedMessage(todoCreatedMessage);
+                    break;
+                }
                 default:
                     throw new ArgumentOutOfRangeException(
                         $"Missing handling for MessageType: {messageRequest.Type}");
@@ -142,6 +149,14 @@ public class Connection : IConnection
         }
     }
 
+    private async void HandleTodoCreatedMessage(TodoCreatedMessage todoCreatedMessage)
+    {
+        if (todoCreatedMessage.UserId.Equals(_userId))
+        {
+            await Send(IncomingMessageType.TodoCreated.ToString());
+        }
+    }
+    
     public async Task Send(string message)
     {
         var bytes = Encoding.UTF8.GetBytes(message);
